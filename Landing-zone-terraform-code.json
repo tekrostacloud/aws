@@ -1,0 +1,114 @@
+
+{
+"Parameters": {
+"KeyName": {
+"Type": "String",
+"Description": "Name of an existing EC2 Key Pair",
+"Default": "my-key-pair"
+}
+},
+"Resources": {
+"VPC": {
+"Type": "AWS::EC2::VPC",
+"Properties": {
+"CidrBlock": "10.0.0.0/16",
+"Tags": [
+{
+"Key": "Name",
+"Value": "MyVPC"
+}
+]
+}
+},
+"InternetGateway": {
+"Type": "AWS::EC2::InternetGateway",
+"Properties": {
+"Tags": [
+{
+"Key": "Name",
+"Value": "MyInternetGateway"
+}
+]
+}
+},
+"VPCGatewayAttachment": {
+"Type": "AWS::EC2::VPCGatewayAttachment",
+"Properties": {
+"VpcId": { "Ref": "VPC" },
+"InternetGatewayId": { "Ref": "InternetGateway" }
+}
+},
+"Subnet": {
+"Type": "AWS::EC2::Subnet",
+"Properties": {
+"VpcId": { "Ref": "VPC" },
+"CidrBlock": "10.0.0.0/24",
+"AvailabilityZone": "ap-south-1a",
+"Tags": [
+{
+"Key": "Name",
+"Value": "MySubnet"
+}
+]
+}
+},
+"SecurityGroup": {
+"Type": "AWS::EC2::SecurityGroup",
+"Properties": {
+"GroupDescription": "Allow inbound SSH and HTTP traffic",
+"VpcId": { "Ref": "VPC" },
+"SecurityGroupIngress": [
+{
+"IpProtocol": "tcp",
+"FromPort": "22",
+"ToPort": "22",
+"CidrIp": "0.0.0.0/0"
+},
+{
+"IpProtocol": "tcp",
+"FromPort": "80",
+"ToPort": "80",
+"CidrIp": "0.0.0.0/0"
+}
+]
+}
+},
+"EIP": {
+"Type": "AWS::EC2::EIP",
+"Properties": {
+"Domain": "vpc"
+}
+},
+"EIPAssociation": {
+"Type": "AWS::EC2::EIPAssociation",
+"Properties": {
+"InstanceId": { "Ref": "Instance" },
+"EIP": { "Ref": "EIP" }
+}
+},
+"Instance": {
+"Type": "AWS::EC2::Instance",
+"Properties": {
+"InstanceType": "t2.micro",
+"ImageId": "ami-07d3a50bd29811cd1",
+"KeyName": { "Ref": "KeyName" },
+"SecurityGroupIds": [ { "Fn::GetAtt": [ "SecurityGroup", "GroupId" ] } ],
+"SubnetId": { "Ref": "Subnet" },
+"Tags": [
+{
+"Key": "Name",
+"Value": "MyInstance"
+}
+]
+}
+}
+},
+"Outputs": {
+"InstanceId": {
+"Value": { "Ref": "Instance" }
+},
+"PublicIP": {
+"Value": { "Fn::GetAtt": [ "Instance", "PublicIp" ] }
+    }
+  }
+}
